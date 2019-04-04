@@ -15,10 +15,9 @@ float time2D(float A, float B, float C, float t0, float h, float md)
     float temp;
     temp = t0+A*md;
     temp = temp*temp;
-    temp = B*md*md;
-    temp = C*h*h;
+    temp += B*md*md;
+    temp += C*h*h;
     return sqrt(temp);
-
 }
 
 float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float wind, float seg, float *pilha)
@@ -71,7 +70,7 @@ float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float w
 
     //Para cada vizinho, se é CMP, vizinhos = 0;
     MidpointSU(lista->tracos[0],&mx,&my);
-    for(vizinho=0; vizinho<lista->numeroVizinhos; vizinho++){
+    for(vizinho=0; vizinho<1; vizinho++){
       MidpointSU(lista->vizinhos[vizinho]->tracos[0],&vx,&vy);
       dx = vx - mx;
       dy = vy - my;
@@ -91,6 +90,7 @@ float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float w
                   k = amostra - w + j;
                   //Interpolacao linear entre as duas amostras
                   InterpolacaoLinear(&valor,lista->vizinhos[vizinho]->tracos[traco]->dados[k],lista->vizinhos[vizinho]->tracos[traco]->dados[k+1], t/seg-w+j, k, k+1);
+                printf("%lf %lf %lf %d %lf %d\n",lista->vizinhos[vizinho]->tracos[traco]->dados[k], valor, lista->vizinhos[vizinho]->tracos[traco]->dados[k+1], k, t/seg-w+j, k+1);
                   numerador[j] += valor;
                   denominador += valor*valor;
                   *pilha += valor;
@@ -109,6 +109,9 @@ float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float w
     }
 
     *pilha = (*pilha)/N/janela;
+
+    printf("%.20lf\n", num / N / denominador);
+    getchar();
 
     return num / N / denominador;
 

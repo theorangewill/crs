@@ -60,7 +60,7 @@ int main (int argc, char **argv)
 
     if(argc < 14){
         printf("ERRO: ./main <dado sismico> A_INI A_FIN A_INC B_INI B_FIN B_INC C_INI C_FIN C_INC MD WIND APH\n");
-        printf("\tARQUIVO: rodar susort <entrada.su >saida.su cdp offset (ordenar os traços em cdp e offset\n");
+        printf("\tARQUIVO: arquivo dos tracos sismicos\n");
         printf("\tA_INI:  constante A inicial\n");
         printf("\tA_FIN:  constante A final\n");
         printf("\tA_INC:    quantidade de A avaliados\n");
@@ -118,7 +118,6 @@ int main (int argc, char **argv)
 
     //Rodar o CMP para cada conjunto de tracos de mesmo cdp
     for(tracos=0; tracos<tamanhoLista; tracos++){
-        printf("\t%d[%d] (cdp= %d) de %d\n", tracos, listaTracos[tracos]->tamanho, listaTracos[tracos]->cdp, tamanhoLista);
         //PrintTracoSU(listaTracos[tracos]->tracos[0]);
 
         //Copiar cabecalho do conjunto dos tracos para os tracos de saida
@@ -132,6 +131,7 @@ int main (int argc, char **argv)
 
         //Computar os vizinhos do cdp
         ComputarVizinhos(listaTracos,tamanhoLista,tracos,md);
+        printf("\t%d[%d|%d] (cdp= %d) de %d\n", tracos, listaTracos[tracos]->tamanho,listaTracos[tracos]->numeroVizinhos, listaTracos[tracos]->cdp, tamanhoLista);
         //Execucao do CRS
         CRS(listaTracos[tracos],Aini,Afin,Ainc,Bini,Bfin,Binc,Cini,Cfin,Cinc,wind,&tracoEmpilhado,&tracoSemblance,&tracoA,&tracoB,&tracoC);
 
@@ -199,7 +199,7 @@ void CRS(ListaTracos *lista, float Aini, float Afin, float Ainc,
 
     //Para cada amostra do primeiro traco
     for(amostra=0; amostra<amostras; amostra++){
-        printf("%d\n", amostra);
+        //printf("%d\n", amostra);
         //Calcula o segundo inicial
         t0 = amostra*seg;
 
@@ -218,7 +218,7 @@ void CRS(ListaTracos *lista, float Aini, float Afin, float Ainc,
             pilhaTemp = 0;
             s = Semblance(lista,A,B,C,t0,wind,seg,&pilhaTemp);
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
-            if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
+            if(s>1) {printf("S MAIOR Q UM %.20f\n", s); }//exit(1);}
             else if(s > bestS){
                 bestS = s;
                 bestA = A;
@@ -227,7 +227,7 @@ void CRS(ListaTracos *lista, float Aini, float Afin, float Ainc,
                 pilha = pilhaTemp;
             }
         }
-      }
+        }
         tracoEmpilhado->dados[amostra] = pilha;
         tracoSemblance->dados[amostra] = bestS;
         tracoA->dados[amostra] = bestA;
