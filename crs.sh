@@ -17,7 +17,7 @@ APH=600
 make clean
 
 make
-if [ "$2" == "valgrind" ]; then
+if [ "$1" == "valgrind" ]; then
 	valgrind ./bin/crs $FILE $A_INI $A_FIN $A_INC $B_INI $B_FIN $B_INC $C_INI $C_FIN $C_INC $MD $WIND $APH
 else   
 	./bin/crs $FILE $A_INI $A_FIN $A_INC $B_INI $B_FIN $B_INC $C_INI $C_FIN $C_INC $MD $WIND $APH

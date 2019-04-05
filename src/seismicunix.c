@@ -191,12 +191,21 @@ void ComputarVizinhos(ListaTracos **lista, int tamanho, int traco, float md)
             else{
                 lista[traco]->vizinhos = (ListaTracos**) realloc((lista[traco]->vizinhos),(lista[traco]->numeroVizinhos+1)*sizeof(ListaTracos*));
             }
-            lista[traco]->vizinhos[lista[traco]->numeroVizinhos] = lista[traco];
+            lista[traco]->vizinhos[lista[traco]->numeroVizinhos] = lista[i];
             (lista[traco]->numeroVizinhos)++;
         }
     }
 }
 
+
+void PrintVizinhosSU(ListaTracos *tracos)
+{
+    int i;
+    printf("CDP: %d\n", tracos->cdp);
+    for(i=0; i<tracos->numeroVizinhos; i++){
+        printf("\tVIZ[%d]: %d\n", i,tracos->vizinhos[i]->cdp);
+    }
+}
 
 void PrintListaTracosSU(ListaTracos **lista, int tamanho)
 {
