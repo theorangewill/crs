@@ -51,6 +51,7 @@ float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float w
         h = HalfOffset(lista->tracos[traco]);
         //Calcular o tempo de acordo com a funcao da hiperbole
         t = time2D(A,B,C,t0,h,0);
+        if(t < 0) return -1;
         //Calcular a amostra equivalente ao tempo calculado
         amostra = (int) (t/seg);
         //Se a janela da amostra cobre os dados sismicos
@@ -73,14 +74,10 @@ float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float w
         }
         if(erro == 2) return -1;
     }
-    num = 0;
-    for(j=0; j<janela; j++){
-        num += numerador[j]*numerador[j];
-    }
 
     //Para cada vizinho, se é CMP, vizinhos = 0;
     MidpointSU(lista->tracos[0],&mx,&my);
-    for(vizinho=0; vizinho<1; vizinho++){
+    for(vizinho=0; vizinho<lista->numeroVizinhos; vizinho++){
         //printf("VIZINHO: %d (CDP=%d) [%d]\n", vizinho, lista->vizinhos[vizinho]->cdp, lista->vizinhos[vizinho]->tamanho);
       MidpointSU(lista->vizinhos[vizinho]->tracos[0],&vx,&vy);
       dx = vx - mx;
@@ -93,7 +90,7 @@ float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float w
           //Calcular o tempo de acordo com a funcao da hiperbole
           //printf("::::::: %.20lf %.20lf %.20lf %.20lf %.20lf %.20lf\n", A, B, C, t0, h, md);
           t = time2D(A,B,C,t0,h,md);
-          if(t < 0){ printf("!"); return -1; }
+          if(t < 0) return -1;
           //Calcular a amostra equivalente ao tempo calculado
           amostra = (int) (t/seg);
           //printf("%d %.20lf %.20lf %.20lf\n", amostra, t, seg, t/seg);
@@ -128,11 +125,7 @@ float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float w
 
     *pilha = (*pilha)/N/janela;
 
-    //printf("1:::: %.20lf       %d  %.20lf %.20lf \n", num / N / denominador, N, num, denominador);
-    //getchar();
-
     return num / N / denominador;
-
 }
 
 

@@ -1,11 +1,12 @@
 #!/bin/bash
 
 FILE=instances/simple-synthetic.su
-A_INI=-0.7e-3
-A_FIN=0.7e-3
+FILE=instances/simple-windowed.su
+A_INI=-0.0007
+A_FIN=0.0007
 A_INC=5
-B_INI=-1e-7
-B_FIN=1e-7
+B_INI=-0.0000001
+B_FIN=0.0000001
 B_INC=5
 C_INI=0.000000198
 C_FIN=0.00000177

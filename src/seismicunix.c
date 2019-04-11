@@ -201,9 +201,17 @@ void ComputarVizinhos(ListaTracos **lista, int tamanho, int traco, float md)
 void PrintVizinhosSU(ListaTracos *tracos)
 {
     int i;
+    float vx, vy, dx, dy, mx, my, md;
+
+    MidpointSU(tracos->tracos[0],&mx,&my);
     printf("CDP: %d\n", tracos->cdp);
     for(i=0; i<tracos->numeroVizinhos; i++){
-        printf("\tVIZ[%d]: %d\n", i,tracos->vizinhos[i]->cdp);
+        MidpointSU(tracos->vizinhos[i]->tracos[0],&vx,&vy);
+        dx = vx - mx;
+        dy = vy - my;
+        md = sqrt(dx*dx + dy*dy);
+
+        printf("\tVIZ[%d]: %d (%.20f)\n", i,tracos->vizinhos[i]->cdp, md);
     }
 }
 

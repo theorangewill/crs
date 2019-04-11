@@ -90,8 +90,8 @@ int main (int argc, char **argv)
     wind = atof(argv[12]);
     aph = atof(argv[13]);
 
-    //printf("%.20lf %.20lf %.20lf %.20lf %.20lf %.20lf %.20lf %.20lf %.20lf %.20lf %.20lf %.20lf\n", Aini, Afin, Ainc, Bini, Bfin, Binc, Cini, Cfin, Cinc, md, wind, aph);
-    
+    //printf("A=%.20lf %.20lf %.20lf B=%.20lf %.20lf %.20lf C=%.20lf %.20lf %.20lf %.20lf %.20lf %.20lf\n", Aini, Afin, Ainc, Bini, Bfin, Binc, Cini, Cfin, Cinc, md, wind, aph);
+
     //Leitura do arquivo
     if(!LeitorArquivoSU(argv[1], &listaTracos, &tamanhoLista, aph)){
         printf("ERRO NA LEITURA\n");
@@ -119,7 +119,7 @@ int main (int argc, char **argv)
     arquivoC = fopen(saidaC,"w");
 
     //Rodar o CMP para cada conjunto de tracos de mesmo cdp
-    for(tracos=33; tracos<tamanhoLista; tracos++){
+    for(tracos=0; tracos<tamanhoLista; tracos++){
         //PrintTracoSU(listaTracos[tracos]->tracos[0]);
 
         //Copiar cabecalho do conjunto dos tracos para os tracos de saida
@@ -214,6 +214,7 @@ void CRS(ListaTracos *lista, float Aini, float Afin, float Ainc,
         bestB = Bini;
         bestC = Cini;
         bestS = 0;
+
         //Para cada constante A, B e C
         for(A=Aini; A<=Afin; A+=Ainc)
         for(B=Bini; B<=Bfin; B+=Binc)
@@ -221,6 +222,7 @@ void CRS(ListaTracos *lista, float Aini, float Afin, float Ainc,
             //Calcular semblance
             pilhaTemp = 0;
             s = Semblance(lista,A,B,C,t0,wind,seg,&pilhaTemp);
+            //if(s == -1){ printf("%d %d %d    ", na, nb, nc); nd++;}
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
             else if(s > bestS){
@@ -231,6 +233,7 @@ void CRS(ListaTracos *lista, float Aini, float Afin, float Ainc,
                 pilha = pilhaTemp;
             }
         }
+        //if(nd > 0)   getchar();
         tracoEmpilhado->dados[amostra] = pilha;
         tracoSemblance->dados[amostra] = bestS;
         tracoA->dados[amostra] = bestA;
