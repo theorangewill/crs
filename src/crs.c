@@ -226,7 +226,7 @@ void CRS(ListaTracos *lista, float Aini, float Afin, int Aint,
     float V, bestV, Vinc;
     float s, bestS;
     float pilha, pilhaTemp;
-    float *Avector, *Bvector;
+    float *Avector, *Bvector, *Vvector;
     int i;
 
     //Tempo entre amostras, convertido para segundos
@@ -247,8 +247,17 @@ void CRS(ListaTracos *lista, float Aini, float Afin, int Aint,
     //for(i=0; i<Aint; i++) printf(" %.10lf ", Avector[i]);
     //printf("\n\tAini=%.10lf Afin=%.10lf Aint=%d Ainc=%.10lf\n", Aini, Afin, Aint, Ainc);
  
-    Binc = (Bfin-Bini)/Bint;
-    Vinc = (Vfin-Vini)/Vint;
+    Binc = (Bfin-Bini)/(Bint-1);
+    Bvector = malloc(sizeof(float)*(Bint));
+    for(i=0; i<Bint; i++) Bvector[i] = Binc*i+Bini;
+    //for(i=0; i<Bint; i++) printf(" %.10lf ", Bvector[i]);
+    //printf("\n\tBini=%.10lf Bfin=%.10lf Bint=%d Binc=%.10lf\n", Bini, Bfin, Bint, Binc);
+
+    Vinc = (Vfin-Vini)/(Vint-1);
+    Vvector = malloc(sizeof(float)*(Vint));
+    for(i=0; i<Vint; i++) Vvector[i] = Vinc*i+Vini;
+    //for(i=0; i<Vint; i++) printf(" %.10lf ", Vvector[i]);
+    //printf("\n\tVini=%.10lf Vfin=%.10lf Vint=%d Vinc=%.10lf\n", Vini, Vfin, Vint, Vinc);
     //Cinc = (Cfin-Cini)/Cinc;
 
     //Para cada amostra do primeiro traco
@@ -257,8 +266,8 @@ void CRS(ListaTracos *lista, float Aini, float Afin, int Aint,
 //#pragma omp parallel for private(bestA,bestB,bestV,A,B,V,bestS,pilha,pilhaTemp,t0,amostra,s) shared(tracoEmpilhado,tracoSemblance,tracoA,tracoB,tracoV,seg,wind,lista,amostras,Aini,Bini,Vini,Afin,Bfin,Vfin,Ainc,Binc,Vinc)
 #endif
     //for(amostra=0; amostra<amostras; amostra++){
-    for(amostra=491; amostra<525; amostra++){
-        //printf("%d\n", amostra);
+    for(amostra=511; amostra<512; amostra++){
+        printf("%d ", amostra);
         //Calcula o segundo inicial
         t0 = amostra*seg;
 
@@ -268,15 +277,15 @@ void CRS(ListaTracos *lista, float Aini, float Afin, int Aint,
         bestA = Aini;
         bestB = Bini;
         bestV = Vini;
-        bestC = 4/(Vini)*4/Vini;
+        bestC = 2/Vini*2/Vini;
         bestS = 0;
-
+      /*
         //Para cada constante A, B e C
         for(V=Vini; V<=Vfin; V+=Vinc){
             //Calcular semblance
             pilhaTemp = 0;
             C = 4/(V*V);
-            s = Semblance(lista,0,0,C,t0,wind,seg,&pilhaTemp);
+            s = Semblance(lista,0.0,0.0,C,t0,wind,seg,&pilhaTemp);
             //if(s == -1){ printf("%d %d %d    ", na, nb, nc); nd++;}
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
@@ -288,7 +297,6 @@ void CRS(ListaTracos *lista, float Aini, float Afin, int Aint,
             }
         }
 
-        /*
         //if(bestS >= 0.9) printf("%d depois do C\n", amostra);
         bestS = 0;
         //for(A=Aini; A<=Afin; A+=Ainc){
@@ -337,7 +345,9 @@ void CRS(ListaTracos *lista, float Aini, float Afin, int Aint,
         tracoB->dados[amostra] = bestB;
         tracoV->dados[amostra] = bestV;
         //tracoC->dados[amostra] = bestC;
-        printf("%.10lf %.10lf %.10lf\n", bestV, bestS, pilha);
+        s = Semblance(lista,2.0/Vfin,0.0,4/2000.0/2000.0,t0,wind,seg,&pilhaTemp);
+        printf("%.20lf %.20lf\n", s, pilhaTemp);
+        //printf("%.10lf %.10lf %.10lf\n", bestV, bestS, pilha);
         //printf("%d S=%.10f A=%.20f B=%.20f V=%.20f Pilha=%.10f\n", amostra, bestS, bestA, bestB, bestV, pilha);
     }
     printf("\n");

@@ -50,7 +50,7 @@ float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float w
         //Calcular metade do offset do traco
         h = HalfOffset(lista->tracos[traco]);
         //Calcular o tempo de acordo com a funcao da hiperbole
-        t = time2D(A,B,C,t0,h,0);
+        t = time2D(0,0,C,t0,h,0);
         if(t < 0) return -1;
         //Calcular a amostra equivalente ao tempo calculado
         amostra = (int) (t/seg);
