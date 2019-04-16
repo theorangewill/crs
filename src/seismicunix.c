@@ -257,7 +257,8 @@ void PrintTracoSU(Traco *traco)
     float maior = 0, menor = 0;
     int idmaior = -1, idmenor = -1;
     for(int i = 0; i<traco->ns; i++){
-        printf("%d\t%.12f\n", i, traco->dados[i]);
+        //printf("%d\t%.12f\n", i, traco->dados[i]);
+        printf("%.12f\n", traco->dados[i]);
         if(traco->dados[i] > maior){
             maior = traco->dados[i];
             idmaior = i;

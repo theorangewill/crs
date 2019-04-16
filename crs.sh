@@ -1,10 +1,12 @@
 #!/bin/bash
 
-FILE=instances/simple-synthetic.su
+#FILE=instances/simple-synthetic.su
 FILE=instances/simple-windowed.su
-A_INI=-0.0007
-A_FIN=0.0007
-A_INC=5
+#FILE=~/Programas/referencia/scripts/crs.stack.su
+#FILE=instances/simple-windowed-B.out4.su
+A_INI=-0.0005
+A_FIN=0.0005
+A_INC=7
 B_INI=-0.0000001
 B_FIN=0.0000001
 B_INC=5
