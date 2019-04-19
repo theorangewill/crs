@@ -21,7 +21,7 @@ float time2D(float A, float B, float C, float t0, float h, float md)
     return sqrt(temp);
 }
 
-float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float wind, float seg, float *pilha)
+float SemblanceCMP(ListaTracos *lista, float A, float B, float C, float t0, float wind, float seg, float *pilha)
 {
     int traco;
     float t, h;
@@ -50,7 +50,7 @@ float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float w
         //Calcular metade do offset do traco
         h = HalfOffset(lista->tracos[traco]);
         //Calcular o tempo de acordo com a funcao da hiperbole
-        t = time2D(0,0,C,t0,h,0);
+        t = time2D(0.0,0.0,C,t0,h,0.0);
         if(t < 0) return -1;
         //Calcular a amostra equivalente ao tempo calculado
         amostra = (int) (t/seg);
@@ -74,6 +74,41 @@ float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float w
         }
         if(erro == 2) return -1;
     }
+
+
+    num = 0;
+    for(j=0; j<janela; j++){
+        num += numerador[j]*numerador[j];
+    }
+
+    *pilha = (*pilha)/N/janela;
+
+    return num / N / denominador;
+}
+
+
+float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float wind, float seg, float *pilha)
+{
+    int traco;
+    float t, h;
+    int amostra, k;
+    int w = (int) (wind/seg);
+    int janela = 2*w+1;
+    int N;
+    float numerador[janela], denominador;
+    float num;
+    float valor;
+    int j;
+    int erro;
+    int vizinho;
+    float md, mx, my, vx, vy, dx, dy;
+
+    //Numerador e denominador da funcao semblance zerados
+    memset(&numerador,0.0,sizeof(numerador));
+    denominador = 0.0;
+    N = 0;
+
+    //printf("\n CDP=%d\n", lista->cdp);
 
     //Para cada vizinho, se é CMP, vizinhos = 0;
     MidpointSU(lista->tracos[0],&mx,&my);

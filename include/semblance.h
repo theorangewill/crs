@@ -30,6 +30,7 @@
 float Semblance(ListaTracos *lista, float A, float B, float C, float t0, float wind, float seg, float *pilha);
 
 
+float SemblanceCMP(ListaTracos *lista, float A, float B, float C, float t0, float wind, float seg, float *pilha);
 /*
  * Calcula a metade do offset.
  */
