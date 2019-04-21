@@ -31,7 +31,7 @@ int LeitorArquivoSU(char *argumento, ListaTracos ***listaTracos, int *tamanhoLis
 
         //Leitura do cabecalho do traco
         if(fread(traco, SEISMIC_UNIX_HEADER, 1, arquivo) < 1) break;
-        
+
         //Aloca memoria para os dados sismicos
         //traco->ns numero de amostras
         traco->dados = malloc(sizeof(float) * traco->ns);
@@ -120,7 +120,7 @@ int comparaCDP(const void* a, const void* b)
     ListaTracos **A = (ListaTracos **) a;
     ListaTracos **B = (ListaTracos **) b;
     //printf("COMPARANDO %d %d\n", (*A)->cdp, (*B)->cdp);
-    return (*A)->cdp - (*B)->cdp; 
+    return (*A)->cdp - (*B)->cdp;
 }
 
 int comparaOffset(const void* a, const void* b)
@@ -156,6 +156,7 @@ void OffsetSU(Traco *traco, float *hx, float *hy)
 	*hx = scalco*(traco->gx-traco->sx);
     //Eixo y
 	*hy = scalco*(traco->gy-traco->sy);
+  //printf("\t %d %d %d %d\n", traco->gx, traco->sx, traco->gy, traco->sy);
 }
 
 
@@ -166,7 +167,7 @@ void MidpointSU(Traco *traco, float *mx, float *my)
   scalco = ScalcoSU(traco);
   //Eixo x
 	*mx = scalco*(traco->gx+traco->sx)/2;
-    //Eixo y
+  //Eixo y
 	*my = scalco*(traco->gy+traco->sy)/2;
 }
 

@@ -30,7 +30,7 @@
 #endif
 
 #define NUM_THREADS 4
-
+#define PI 3.14159265
 /*
  * Algoritmo CRS.
  */
@@ -38,7 +38,7 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
           float Bpctg, int Bint,
           float *Vvector, int Vint,
           float *Cvector,
-          float wind, Traco* tracoEmpilhado,
+          float wind, float azimuth, Traco* tracoEmpilhado,
           Traco* tracoSemblance, Traco* tracoA, Traco* tracoB, Traco* tracoV);
 
 /*
@@ -57,7 +57,7 @@ int main (int argc, char **argv)
 {
     ListaTracos **listaTracos = NULL;
     int tamanhoLista = 0;
-    float Aang, Av0, Aini, Afin, Ainc;
+    float Aang, Av0;
     int Aint;
     float Bpctg;
     int Bint;
@@ -70,9 +70,10 @@ int main (int argc, char **argv)
     char saida[101], saidaEmpilhado[104], saidaSemblance[104], saidaA[104], saidaB[104], saidaV[104];
     FILE *arquivoEmpilhado, *arquivoSemblance, *arquivoA, *arquivoB, *arquivoV;
     Traco tracoSemblance, tracoA, tracoB, tracoEmpilhado, tracoV;
+    float azimuth;
 
-    if(argc < 13){
-        printf("ERRO: ./main <dado sismico> A_ANG A_V0 A_INT B_PCTG B_INT V_INI V_FIN V_INT MD WIND APH\n");
+    if(argc < 14){
+        printf("ERRO: ./main <dado sismico> A_ANG A_V0 A_INT B_PCTG B_INT V_INI V_FIN V_INT MD WIND APH AZIMUTH\n");
         printf("\tARQUIVO: arquivo dos tracos sismicos\n");
         printf("\tA_ANG:  angulo de A\n");
         printf("\tA_V0:  v0 de A\n");
@@ -85,6 +86,7 @@ int main (int argc, char **argv)
         printf("\tMD:    distancia dos vizinhos\n");
         printf("\tWIND:    janela do semblance (em amostras)\n");
         printf("\tAPH:    aperture\n");
+        printf("\tAZIMUTH:    azimuth\n");
         exit(1);
     }
 
@@ -100,6 +102,7 @@ int main (int argc, char **argv)
     md = atof(argv[10]);
     wind = atof(argv[11]);
     aph = atof(argv[12]);
+    azimuth = atof(argv[13]);
 
     //printf("A=%.20lf %.20lf %.20lf B=%.20lf %.20lf %.20lf C=%.20lf %.20lf %.20lf %.20lf %.20lf %.20lf\n", Aini, Afin, Ainc, Bini, Bfin, Binc, Cini, Cfin, Cinc, md, wind, aph);
 
@@ -146,8 +149,11 @@ int main (int argc, char **argv)
     float Angini, Angfin, Anginc;
     Angini = -Aang;
     Angfin = Aang;
-    Anginc = 2.0 * Angfin / (Aint-1);
-
+    Anginc = 2.0 * Angfin / (Aint);
+    float Aini, Afin, Ainc;
+    Aini = 2.0 * sin(Angini * PI / 180) / Av0;
+    Afin = 2.0 * sin(Angfin * PI / 180) / Av0;
+    Ainc = 2.0 * Afin / (Aint);
 
     /*Aini = 2.0 * sin(Aang) / Av0;
     if(Aini > 0) Aini *= -1;
@@ -160,16 +166,18 @@ int main (int argc, char **argv)
       //Avector[i] = Ainc*i+Aini;
       //Angvector[i] = Av0 * Avector[i] / 2.0;
       Angvector[i] = Anginc*i+Angini;
-      Avector[i] = 2.0 * sin(Angvector[i]) / Av0;
+      //Avector[i] = 2.0 * sin(Angvector[i] * PI /180) / Av0;
+      Avector[i] = Ainc*i+Aini;
       if(Avector[i] == 0.0) zero = 1;
     }
+
     if(zero == 0){
       Avector[Aint] = 0.0;
       Angvector[Aint] = 0.0;
       Aint++;
     }
 
-    Vinc = (Vfin-Vini)/(Vint-1);
+    Vinc = (Vfin-Vini)/(Vint);
     Vvector = malloc(sizeof(float)*(Vint));
     Cvector = malloc(sizeof(float)*(Vint));
     for(i=0; i<Vint; i++){
@@ -180,7 +188,7 @@ int main (int argc, char **argv)
 
     //Rodar o CRS para cada conjunto de tracos de mesmo cdp
     for(tracos=0; tracos<tamanhoLista; tracos++){
-      //if(listaTracos[tracos]->cdp != 250) continue;
+        //if(listaTracos[tracos]->cdp != 250) continue;
         //PrintTracoSU(listaTracos[tracos]->tracos[0]);
 
         //Copiar cabecalho do conjunto dos tracos para os tracos de saida
@@ -199,7 +207,7 @@ int main (int argc, char **argv)
         printf("\t%d[%d|%d] (cdp= %d) de %d\n", tracos, listaTracos[tracos]->tamanho,listaTracos[tracos]->numeroVizinhos,
                             listaTracos[tracos]->cdp, tamanhoLista);
         //Execucao do CRS
-        CRS(listaTracos[tracos],Avector,Aint,Angvector,Bpctg,Bint,Vvector,Vint,Cvector,wind,&tracoEmpilhado,&tracoSemblance,&tracoA,&tracoB,&tracoV);
+        CRS(listaTracos[tracos],Avector,Aint,Angvector,Bpctg,Bint,Vvector,Vint,Cvector,wind,azimuth,&tracoEmpilhado,&tracoSemblance,&tracoA,&tracoB,&tracoV);
 
         //Copiar os tracos resultantes nos arquivos de saida
         fwrite(&tracoEmpilhado,SEISMIC_UNIX_HEADER,1,arquivoEmpilhado);
@@ -247,13 +255,13 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
           float Bpctg, int Bint,
           float *Vvector, int Vint,
           float *Cvector,
-          float wind, Traco* tracoEmpilhado,
+          float wind, float azimuth, Traco* tracoEmpilhado,
           Traco* tracoSemblance, Traco* tracoA, Traco* tracoB, Traco* tracoV)
 {
     int amostra, amostras;
     float seg, t0;
-    float bestA, bestAng;
-    float B, bestB, Bini, Bfin;
+    float bestAng;
+    float bestB, B, Bini, Bfin, Binc, bestA;
     float bestC;
     float bestV;
     float s, bestS;
@@ -262,6 +270,7 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
 
     //Tempo entre amostras, convertido para segundos
     seg = ((float) lista->tracos[0]->dt)/1000000;
+
     //Numero de amostras
     amostras = lista->tracos[0]->ns;
     //Alocar memoria para os dados dos tracos resultantes
@@ -297,7 +306,7 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
         for(i=0; i<Vint; i++){
             //Calcular semblance
             pilhaTemp = 0;
-            s = SemblanceCMP(lista,0.0,0.0,Cvector[i],t0,wind,seg,&pilhaTemp);
+            s = SemblanceCMP(lista,0.0,0.0,Cvector[i],t0,wind,seg,&pilhaTemp,azimuth);
             //if(s == -1){ printf("%d %d %d    ", na, nb, nc); nd++;}
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
@@ -307,14 +316,17 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
                 bestV = Vvector[i];
                 pilha = pilhaTemp;
             }
+            //printf("%.10lf %.10lf\n", s, Vvector[i]);
         }
-
+        //printf("%d %.10lf %10.lf\n", amostra, bestS, bestV);
+        //printf("----------------\n");
+        //getchar();
         bestS = -1;
         //for(A=Aini; A<=Afin; A+=Ainc){
-        for(i=0; i<Aint+1; i++){
+        for(i=0; i<Aint; i++){
             //Calcular semblance
             pilhaTemp = 0;
-            s = Semblance(lista,Avector[i],0.0,bestC,t0,wind,seg,&pilhaTemp);
+            s = Semblance(lista,Avector[i],0.0,bestC,t0,wind,seg,&pilhaTemp,azimuth);
             //printf("s=%.10lf A=%.10lf\n", s, Avector[i]);
             //if(s == -1){ printf("%d %d %d    ", na, nb, nc); nd++;}
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
@@ -325,19 +337,26 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
                 bestA = Avector[i];
                 pilha = pilhaTemp;
             }
+            //printf("%d %.10lf %.10lf %.10lf\n", i, s, bestV, Avector[i]);
         }
+        //printf("-------------\n");
+        //printf("%d %.10lf %.10lf %.10lf\n", amostra, bestS, bestV, bestA);
+          //  getchar();
         //printf(">> bestS %.10f bestA %.10lf\n", bestS, bestA);
         //getchar();
         //printf("A %.20f\n", bestS);
         //if(bestS >= 0.9) printf("%d depois do A\n", amostra);
-/*
+
         bestS = -1;
         Bfin = Bpctg * bestC;
         Bini = Bfin / (Bint*Bint/2);
-        for(i=0, B=Bini; i<=Bint/2; i++, B=B*B){
+        //printf("%.10lf %.10lf %d %.10lf %.10lf %.10lf\n", Bini, Bfin, Bint, Bpctg, bestV, bestC);
+        //getchar();
+        for(i=0, B=Bfin; i<=Bint/2; i++, B=B*B){
             //Calcular semblance
             pilhaTemp = 0;
-            s = Semblance(lista,bestA,B,bestC,t0,wind,seg,&pilhaTemp);
+            //printf("%.20lf\n", B);
+            s = Semblance(lista,bestA,B,bestC,t0,wind,seg,&pilhaTemp,azimuth);
             //if(s == -1){ printf("%d %d %d    ", na, nb, nc); nd++;}
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
@@ -348,7 +367,8 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
             }
             pilhaTemp = 0;
 
-            s = Semblance(lista,bestA,-B,bestC,t0,wind,seg,&pilhaTemp);
+            //printf("%.20lf\n", -B);
+            s = Semblance(lista,bestA,-B,bestC,t0,wind,seg,&pilhaTemp,azimuth);
             //if(s == -1){ printf("%d %d %d    ", na, nb, nc); nd++;}
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
@@ -358,9 +378,10 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
                 pilha = pilhaTemp;
             }
         }
+        //getchar();
         //printf("B %.20f\n", bestS);
         //if(bestS >= 0.9) printf("%d depois do B\n", amostra);
-*/
+
 
 
         //if(nd > 0)   getchar();
@@ -371,7 +392,7 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
         tracoB->dados[amostra] = bestB;
         tracoV->dados[amostra] = bestV;
         //tracoC->dados[amostra] = bestC;
-        //s = Semblance(lista,2.0/Vfin,0.0,4/2000.0/2000.0,t0,wind,seg,&pilhaTemp);
+        //s = Semblance(lista,2.0/Vfin,0.0,4/2000.0/2000.0,t0,wind,seg,&pilhaTemp,azimuth);
         //printf("%.20lf %.20lf\n", s, pilhaTemp);
         //printf("%.10lf %.10lf %.10lf\n", bestV, bestS, pilha);
         //printf("%d S=%.10f A=%.20f Ang=%.20lf B=%.20f V=%.20f Pilha=%.10f\n", amostra, bestS, bestA, bestAng, bestB, bestV, pilha);
