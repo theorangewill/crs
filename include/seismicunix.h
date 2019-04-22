@@ -166,7 +166,6 @@ int comparaCDP(const void* a, const void* b);
  */
 void PrintVizinhosSU(ListaTracos *tracos);
 
-
 /*
  * Imprime o cabecalho do traco.
  */

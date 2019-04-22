@@ -119,7 +119,6 @@ int comparaCDP(const void* a, const void* b)
 {
     ListaTracos **A = (ListaTracos **) a;
     ListaTracos **B = (ListaTracos **) b;
-    //printf("COMPARANDO %d %d\n", (*A)->cdp, (*B)->cdp);
     return (*A)->cdp - (*B)->cdp;
 }
 
@@ -137,7 +136,7 @@ int comparaOffset(const void* a, const void* b)
 }
 
 float ScalcoSU(Traco *traco)
-{
+{   
     //Se positivo, envia o dado
     if (traco->scalco > 0)
 		return traco->scalco;
@@ -149,26 +148,24 @@ float ScalcoSU(Traco *traco)
 
 void OffsetSU(Traco *traco, float *hx, float *hy)
 {
-	float scalco;
-    //Calcula o scalco, valor a ser multiplicado pelas dimensoes para torná-los numeros reais
-    scalco = ScalcoSU(traco);
-    //Eixo x
-	*hx = scalco*(traco->gx-traco->sx);
-    //Eixo y
-	*hy = scalco*(traco->gy-traco->sy);
-  //printf("\t %d %d %d %d\n", traco->gx, traco->sx, traco->gy, traco->sy);
-}
-
-
-void MidpointSU(Traco *traco, float *mx, float *my)
-{
-	float scalco;
+  float scalco;
   //Calcula o scalco, valor a ser multiplicado pelas dimensoes para torná-los numeros reais
   scalco = ScalcoSU(traco);
   //Eixo x
-	*mx = scalco*(traco->gx+traco->sx)/2;
+	*hx = scalco*(traco->gx-traco->sx);
   //Eixo y
-	*my = scalco*(traco->gy+traco->sy)/2;
+	*hy = scalco*(traco->gy-traco->sy);
+}
+
+void MidpointSU(Traco *traco, float *mx, float *my)
+{
+  float scalco;
+  //Calcula o scalco, valor a ser multiplicado pelas dimensoes para torná-los numeros reais
+  scalco = ScalcoSU(traco);
+  //Eixo x
+  *mx = scalco*(traco->gx+traco->sx)/2;
+  //Eixo y
+  *my = scalco*(traco->gy+traco->sy)/2;
 }
 
 void ComputarVizinhos(ListaTracos **lista, int tamanho, int traco, float md)
@@ -179,7 +176,6 @@ void ComputarVizinhos(ListaTracos **lista, int tamanho, int traco, float md)
     float distx, disty;
 
     MidpointSU(lista[traco]->tracos[0], &midx, &midy);
-
     for(i=0; i<tamanho; i++){
         if(i == traco) continue;
         MidpointSU(lista[i]->tracos[0], &vizx, &vizy);
@@ -197,7 +193,6 @@ void ComputarVizinhos(ListaTracos **lista, int tamanho, int traco, float md)
         }
     }
 }
-
 
 void PrintVizinhosSU(ListaTracos *tracos)
 {
@@ -258,8 +253,7 @@ void PrintTracoSU(Traco *traco)
     float maior = 0, menor = 0;
     int idmaior = -1, idmenor = -1;
     for(int i = 0; i<traco->ns; i++){
-        //printf("%d\t%.12f\n", i, traco->dados[i]);
-        printf("%.20f\n", traco->dados[i]);
+        printf("%d\t%.12f\n", i, traco->dados[i]);
         if(traco->dados[i] > maior){
             maior = traco->dados[i];
             idmaior = i;
