@@ -255,6 +255,7 @@ int main (int argc, char **argv)
         int amostras = listaTracos[tracos]->tracos[0]->ns;
         for(i=0; i<amostras ; i++){
             float t0 = i*seg;
+            printf("\nCDP: %d amostra:%d", listaTracos[tracos]->cdp, i);
             printf("\nA:%.20lf Angulo:%.20lf B:%.20lf C:%.20lf V:%.20lf\n", 2.0*sin(listaA[tracos]->tracos[0]->dados[i]*PI/180) /Av0, 
              listaA[tracos]->tracos[0]->dados[i], listaB[tracos]->tracos[0]->dados[i],
              4/listaV[tracos]->tracos[0]->dados[i]/listaV[tracos]->tracos[0]->dados[i], listaV[tracos]->tracos[0]->dados[i]);
@@ -262,7 +263,8 @@ int main (int argc, char **argv)
                         4/tracoV.dados[i]/tracoV.dados[i], tracoV.dados[i]);
             float s = Semblance(*listaTracos,2.0*sin(listaA[tracos]->tracos[0]->dados[i]*PI/180) /Av0,listaB[tracos]->tracos[0]->dados[i],4/listaV[tracos]->tracos[0]->dados[i]/listaV[tracos]->tracos[0]->dados[i],t0,wind,seg,&pilhaTemp,azimuth);
             printf("%.20lf == %.20lf (%.20lf)\n", s, listaSemblance[tracos]->tracos[0]->dados[i], tracoSemblance.dados[i]);
-            getchar();
+            //if(listaSemblance[tracos]->tracos[0]->dados[i] > 0.5) getchar();
+            if(s == -1) getchar();
         }
 
 
@@ -321,7 +323,7 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
     float bestB, B, Bini, Bfin, Binc, bestA;
     float bestC;
     float bestV;
-    float s, bestS;
+    float s, bestSC, bestSA, bestSB;
     float pilha, pilhaTemp;
     int i;
 
@@ -340,9 +342,9 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
 
     //Para cada amostra do primeiro traco
 #ifdef OMP_H
-#pragma omp parallel for firstprivate(lista,amostras,Vint,Aint,Bpctg,Bint,seg,wind,azimuth,Cvector,Vvector,Avector) private(bestA,bestB,bestAng,bestV,bestC,bestS,Bini,Bfin,B,i,pilha,pilhaTemp,t0,amostra,s)  shared(tracoEmpilhado,tracoSemblance,tracoA,tracoB,tracoV)
+//#pragma omp parallel for firstprivate(lista,amostras,Vint,Aint,Bpctg,Bint,seg,wind,azimuth,Cvector,Vvector,Avector) private(bestA,bestB,bestAng,bestV,bestC,bestSA,bestSB,bestSC,Bini,Bfin,B,i,pilha,pilhaTemp,t0,amostra,s)  shared(tracoEmpilhado,tracoSemblance,tracoA,tracoB,tracoV)
 #endif
-    for(amostra=0; amostra<amostras; amostra++){
+    for(amostra=498; amostra<500; amostra++){
         //Calcula o segundo inicial
         t0 = amostra*seg;
 
@@ -353,24 +355,25 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
         bestAng = 0.0;
         bestV = Vvector[0];
         bestC = Cvector[0];
-        bestS = -1;
+        bestSC = -1;
 
         //Para cada constante C
         for(i=0; i<Vint; i++){
             //Calcular semblance
             pilhaTemp = 0;
-            s = SemblanceCMP(lista,0.0,0.0,Cvector[i],t0,wind,seg,&pilhaTemp,azimuth);
+            s = Semblance(lista,0.0,0.0,Cvector[i],t0,wind,seg,&pilhaTemp,azimuth);
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
-            else if(s > bestS){
-                bestS = s;
+            else if(s > bestSC){
+                bestSC = s;
                 bestC = Cvector[i];
                 bestV = Vvector[i];
                 pilha = pilhaTemp;
             }
         }
+        //printf("%.20lf %.20lf %.20lf =  %.20lf\n", bestC, bestA, bestB, bestSC);
 
-        bestS = -1;
+        bestSA = -1;
         //Para cada constante A
         for(i=0; i<Aint; i++){
             //Calcular semblance
@@ -378,15 +381,17 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
             s = Semblance(lista,Avector[i],0.0,bestC,t0,wind,seg,&pilhaTemp,azimuth);
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
-            else if(s > bestS){
-                bestS = s;
+            else if(s > bestSA){
+                bestSA = s;
                 bestAng = Angvector[i];
                 bestA = Avector[i];
                 pilha = pilhaTemp;
             }
+            //printf("--%.20lf %.20lf %.20lf %.20lf\n", Avector[i], bestC, s, bestSA);
         }
+        //printf("%.20lf %.20lf %.20lf\n", bestC, bestA, bestB);
 
-        bestS = -1;
+        bestSB = -1;
         Bfin = Bpctg * bestC;
         //Para cada constante B
         for(i=0, B=Bfin; i<=Bint; i++, B=B*0.8){
@@ -395,31 +400,40 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
             s = Semblance(lista,bestA,B,bestC,t0,wind,seg,&pilhaTemp,azimuth);
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
-            else if(s > bestS){
-                bestS = s;
+            else if(s > bestSB){
+                bestSB = s;
                 bestB = B;
                 pilha = pilhaTemp;
             }
             pilhaTemp = 0;
+            //printf("--%.20lf %.20lf %.20lf %.20lf\n", B, bestSB, s, bestB);
 
             s = Semblance(lista,bestA,-B,bestC,t0,wind,seg,&pilhaTemp,azimuth);
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
-            else if(s > bestS){
-                bestS = s;
+            else if(s > bestSB){
+                bestSB = s;
                 bestB = B;
                 pilha = pilhaTemp;
             }
+            //printf("--%.20lf %.20lf %.20lf %.20lf\n", -B, bestSB, s, bestB);
         }
+        //printf("%.20lf %.20lf %.20lf\n", bestC, bestA, bestB);
+
+        //printf(">>%.20lf %.20lf %.20lf\n", bestSC, bestSA, bestSB);
+
 
         tracoEmpilhado->dados[amostra] = pilha;
-        if(bestS == -1) bestS = 0;
-        tracoSemblance->dados[amostra] = bestS;
+        if(bestSB == -1) bestSB = 0;
+        tracoSemblance->dados[amostra] = bestSB;
         tracoA->dados[amostra] = bestAng;
         tracoB->dados[amostra] = bestB;
         tracoV->dados[amostra] = bestV;
         //tracoC->dados[amostra] = bestC;
+        //if(bestSB == -1)
+        //printf("OPA");
     }
+    //getchar();
 }
 
 void SetCabecalhoCRS(Traco *traco)
