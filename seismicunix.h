@@ -128,7 +128,7 @@ struct ListaTracos{
 /*
  * Le o arquivo do dado sismico SU.
  */
-int LeitorArquivoSU(char* arquivo, ListaTracos ***listaTracos, int *tamanhoLista, float aph, float azimuth);
+int LeitorArquivoSU(char* arquivo, ListaTracos ***listaTracos, int *tamanhoLista, float aph);
 
 /*
  * Retorna o scalco multiplicado (se positivo) ou dividindo (se negativo).
@@ -140,6 +140,7 @@ float ScalcoSU(Traco *traco);
  */
 void OffsetSU(Traco *traco, float *hx, float *hy);
 
+
 /*
  * Calcula o ponto médio.
  */
@@ -148,7 +149,7 @@ void MidpointSU(Traco *traco, float *mx, float *my);
 /*
  * Computa os vizinhos.
  */
-void ComputarVizinhos(ListaTracos **lista, int tamanho, int traco, float md, float azimuth);
+void ComputarVizinhos(ListaTracos **lista, int tamanho, int traco, float md);
 
 /*
  * Função para comparar dois offsets
@@ -164,7 +165,6 @@ int comparaCDP(const void* a, const void* b);
  * Imprime os vizinhos de um CDP
  */
 void PrintVizinhosSU(ListaTracos *tracos);
-
 
 /*
  * Imprime o cabecalho do traco.
