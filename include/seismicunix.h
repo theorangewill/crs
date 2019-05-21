@@ -140,7 +140,6 @@ float ScalcoSU(Traco *traco);
  */
 void OffsetSU(Traco *traco, float *hx, float *hy);
 
-
 /*
  * Calcula o ponto médio.
  */

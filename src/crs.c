@@ -107,24 +107,10 @@ int main (int argc, char **argv)
     //printf("A=%.20lf %.20lf %.20lf B=%.20lf %.20lf %.20lf C=%.20lf %.20lf %.20lf %.20lf %.20lf %.20lf\n", Aini, Afin, Ainc, Bini, Bfin, Binc, Cini, Cfin, Cinc, md, wind, aph);
 
     //Leitura do arquivo
-    if(!LeitorArquivoSU(argv[1], &listaTracos, &tamanhoLista, aph,azimuth)){
+    if(!LeitorArquivoSU(argv[1], &listaTracos, &tamanhoLista, aph, azimuth)){
         printf("ERRO NA LEITURA\n");
         exit(1);
     }
-
-ListaTracos **listaV, **listaSemblance;
-int tamV, tamSemblance;
-    if(!LeitorArquivoSU(argv[14], &listaV, &tamV, aph, azimuth)){
-        printf("ERRO NA LEITURA V\n");
-        exit(1);
-    }
-
-    if(!LeitorArquivoSU(argv[15], &listaSemblance, &tamSemblance, aph, azimuth)){
-        printf("ERRO NA LEITURA Semblance\n");
-        exit(1);
-    }
-
-
   /*
     for(int i=0; i<tamanhoLista; i++){
       if(listaTracos[i]->cdp == 250){
@@ -139,19 +125,19 @@ int tamV, tamSemblance;
     argv[1][strlen(argv[1])-3] = '\0';
     strcpy(saida,argv[1]);
     strcpy(saidaEmpilhado,saida);
-    strcat(saidaEmpilhado,"-empilhado.out.su");
+    strcat(saidaEmpilhado,"-empilhado.out3.su");
     arquivoEmpilhado = fopen(saidaEmpilhado,"w");
     strcpy(saidaSemblance,saida);
-    strcat(saidaSemblance,"-semblance.out.su");
+    strcat(saidaSemblance,"-semblance.out3.su");
     arquivoSemblance = fopen(saidaSemblance,"w");
     strcpy(saidaA,saida);
-    strcat(saidaA,"-A.out.su");
+    strcat(saidaA,"-A.out3.su");
     arquivoA = fopen(saidaA,"w");
     strcpy(saidaB,saida);
-    strcat(saidaB,"-B.out.su");
+    strcat(saidaB,"-B.out3.su");
     arquivoB = fopen(saidaB,"w");
     strcpy(saidaV,saida);
-    strcat(saidaV,"-V.out.su");
+    strcat(saidaV,"-V.out3.su");
     arquivoV = fopen(saidaV,"w");
 
 
@@ -175,15 +161,20 @@ int tamV, tamSemblance;
     Ainc = 2.0 * Afin / (Aint-1);*/
     Avector = malloc(sizeof(float)*(Aint+1));
     Angvector = malloc(sizeof(float)*(Aint+1));
-    Angvector[0] = 0.0;
-    Avector[0] = 0.0;
-    Aint++;
-    for(i=1; i<Aint; i++){
+    zero = 0;
+    for(i=0; i<Aint; i++){
       //Avector[i] = Ainc*i+Aini;
       //Angvector[i] = Av0 * Avector[i] / 2.0;
       Angvector[i] = Anginc*i+Angini;
-      Avector[i] = 2.0 * sin(Angvector[i] * PI /180) / Av0;
-      //Avector[i] = Ainc*i+Aini;
+      //Avector[i] = 2.0 * sin(Angvector[i] * PI /180) / Av0;
+      Avector[i] = Ainc*i+Aini;
+      if(Avector[i] == 0.0) zero = 1;
+    }
+
+    if(zero == 0){
+      Avector[Aint] = 0.0;
+      Angvector[Aint] = 0.0;
+      Aint++;
     }
 
     Vinc = (Vfin-Vini)/(Vint);
@@ -197,7 +188,7 @@ int tamV, tamSemblance;
 
     //Rodar o CRS para cada conjunto de tracos de mesmo cdp
     for(tracos=0; tracos<tamanhoLista; tracos++){
-        if(listaTracos[tracos]->cdp == 230) break;
+        //if(listaTracos[tracos]->cdp == 230) break;
         //PrintTracoSU(listaTracos[tracos]->tracos[0]);
 
         //Copiar cabecalho do conjunto dos tracos para os tracos de saida
@@ -217,41 +208,6 @@ int tamV, tamSemblance;
                             listaTracos[tracos]->cdp, tamanhoLista);
         //Execucao do CRS
         CRS(listaTracos[tracos],Avector,Aint,Angvector,Bpctg,Bint,Vvector,Vint,Cvector,wind,azimuth,&tracoEmpilhado,&tracoSemblance,&tracoA,&tracoB,&tracoV);
-
-        float seg = ((float) listaTracos[tracos]->tracos[0]->dt)/1000000;
-        int amostras = listaTracos[tracos]->tracos[0]->ns;
-        float pilhaTemp;
-        for(i=0; i<amostras ; i++){
-            float t0 = i*seg;
-            printf("\nCDP: %d amostra:%d\n", listaTracos[tracos]->cdp, i);
-            float nA, nAng, nB, nC, nV, nS;
-            nA = 0.0;//2.0*sin(listaA[tracos]->tracos[0]->dados[i]*PI/180) /Av0;
-            nAng = 0.0;//listaA[tracos]->tracos[0]->dados[i];
-            nB = 0.0;//listaB[tracos]->tracos[0]->dados[i];
-            nC = 4/listaV[tracos]->tracos[0]->dados[i]/listaV[tracos]->tracos[0]->dados[i];
-            nV = listaV[tracos]->tracos[0]->dados[i];
-            nS = listaSemblance[tracos]->tracos[0]->dados[i];
-            float mA, mAng, mB, mC, mV, mS;
-            mA = 0.0;//2.0*sin(tracoA.dados[i]*PI/180)/Av0;
-            mAng = 0.0;//tracoA.dados[i];
-            mB = 0.0;//tracoB.dados[i];
-            mC = 4/tracoV.dados[i]/tracoV.dados[i];
-            mV = tracoV.dados[i];
-            mS = tracoSemblance.dados[i];
-            printf("\nA:%.20lf Angulo:%.20lf B:%.20lf C:%.20lf V:%.20lf\n", nA, nAng, nB, nC, nV);
-            printf("A:%.20lf Angulo:%.20lf B:%.20lf C:%.20lf V:%.20lf\n\n", mA, mAng, mB, mC, mV);
-            float s = Semblance(*listaTracos,nA,nB,nC,t0,wind,seg,&pilhaTemp,azimuth);
-            float ms = Semblance(*listaTracos,mA,mB,mC,t0,wind,seg,&pilhaTemp,azimuth);
-            float delta = nS - s;
-            printf("%.20lf\n", delta);
-            printf("%.20lf == %.20lf (%.20lf == %.20lf)\n", s, nS, mS, ms);
-            if(listaSemblance[tracos]->tracos[0]->dados[i] > 0.5) getchar();
-            //if(s == -1) getchar();
-            //if( i == 17) getchar();
-            getchar();
-        }
-
-        getchar();
 
         //Copiar os tracos resultantes nos arquivos de saida
         fwrite(&tracoEmpilhado,SEISMIC_UNIX_HEADER,1,arquivoEmpilhado);
@@ -304,12 +260,12 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
 {
     int amostra, amostras;
     float seg, t0;
-    float bestAng[3], bestA[3];
-    float bestB[3], iB, Bini, Bfin, Binc;
-    float bestC[3];
-    float bestV[3];
-    float s, bestS[3];
-    float pilha[3], pilhaTemp;
+    float bestAng;
+    float bestB, B, Bini, Bfin, Binc, bestA;
+    float bestC;
+    float bestV;
+    float s, bestS;
+    float pilha, pilhaTemp;
     int i;
 
     //Tempo entre amostras, convertido para segundos
@@ -325,105 +281,125 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
     tracoV->dados = malloc(sizeof(float)*amostras);
     //tracoC->dados = malloc(sizeof(float)*amostras);
 
-    for(i=0; i<3; i++){
-      bestAng[i] = 0.0;
-      bestA[i] = 0.0;
-      bestB[i] = 0.0;
-      bestV[i] = Vvector[0];
-      bestC[i] = Cvector[0];
-      bestS[i] = 0.0;
-    }
-
     //Para cada amostra do primeiro traco
 #ifdef OMP_H
 //#pragma omp parallel for private(bestA,bestB,bestC,A,B,C,bestS,pilha,pilhaTemp,t0,amostra,s) shared(tracoEmpilhado,tracoSemblance,tracoA,tracoB,tracoC,seg,wind,lista,amostras,Aini,Bini,Cini,Afin,Bfin,Cfin,Ainc,Binc,Cinc)
-#pragma omp parallel for private(i,iB,pilhaTemp,t0,amostra,s,Bini) firstprivate(bestA,bestB,bestV,bestAng,bestC,bestS,pilha,seg,wind,amostras,Vint,Vvector,Cvector,Avector,Angvector,Aint,Bint,Bpctg,azimuth) shared(tracoEmpilhado,tracoSemblance,tracoA,tracoB,tracoV,lista)
+//#pragma omp parallel for private(bestA,bestB,bestV,A,B,V,bestS,pilha,pilhaTemp,t0,amostra,s) shared(tracoEmpilhado,tracoSemblance,tracoA,tracoB,tracoV,seg,wind,lista,amostras,Aini,Bini,Vini,Afin,Bfin,Vfin,Ainc,Binc,Vinc)
 #endif
     for(amostra=0; amostra<amostras; amostra++){
+    //for(amostra=511; amostra<512; amostra++){
+        //printf("%d ", amostra);
         //Calcula o segundo inicial
         t0 = amostra*seg;
 
         //Inicializar variaveis antes da busca
-        pilha[0] = lista->tracos[0]->dados[amostra];
-        pilha[1] = lista->tracos[0]->dados[amostra];
-        pilha[2] = lista->tracos[0]->dados[amostra];
+        pilha = lista->tracos[0]->dados[amostra];
+        bestA = 0.0;
+        bestB = 0.0;
+        bestAng = 0.0;
+        bestV = Vvector[0];
+        bestC = Cvector[0];
+        bestS = -1;
 
         //Para cada constante A, B e C
+        //for(V=Vini; V<=Vfin; V+=Vinc){
         for(i=0; i<Vint; i++){
             //Calcular semblance
-            pilhaTemp = 0.0;
-            s = Semblance(lista,0.0,0.0,Cvector[i],t0,wind,seg,&pilhaTemp,azimuth);
+            pilhaTemp = 0;
+            s = SemblanceCMP(lista,0.0,0.0,Cvector[i],t0,wind,seg,&pilhaTemp,azimuth);
+            //if(s == -1){ printf("%d %d %d    ", na, nb, nc); nd++;}
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
-            else if(s > bestS[0]){
-                bestS[0] = s;
-                bestC[0] = Cvector[i];
-                bestV[0] = Vvector[i];
-                pilha[0] = pilhaTemp;
+            else if(s > bestS){
+                bestS = s;
+                bestC = Cvector[i];
+                bestV = Vvector[i];
+                pilha = pilhaTemp;
             }
+            //printf("%.10lf %.10lf\n", s, Vvector[i]);
         }
-        bestC[1] = bestC[0];
-        bestC[2] = bestC[0];
-        bestV[1] = bestV[0];
-        bestV[2] = bestV[0];
-
+        //printf("%d %.10lf %10.lf\n", amostra, bestS, bestV);
+        //printf("----------------\n");
+        //getchar();
+        bestS = -1;
+        //for(A=Aini; A<=Afin; A+=Ainc){
         for(i=0; i<Aint; i++){
             //Calcular semblance
-            pilhaTemp = 0.0;
-            s = Semblance(lista,Avector[i],0.0,bestC[1],t0,wind,seg,&pilhaTemp,azimuth);
+            pilhaTemp = 0;
+            s = Semblance(lista,Avector[i],0.0,bestC,t0,wind,seg,&pilhaTemp,azimuth);
+            //printf("s=%.10lf A=%.10lf\n", s, Avector[i]);
+            //if(s == -1){ printf("%d %d %d    ", na, nb, nc); nd++;}
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
-            else if(s > bestS[1]){
-                bestS[1] = s;
-                bestAng[1] = Angvector[i];
-                bestA[1] = Avector[i];
-                pilha[1] = pilhaTemp;
+            else if(s > bestS){
+                bestS = s;
+                bestAng = Angvector[i];
+                bestA = Avector[i];
+                pilha = pilhaTemp;
             }
+            //printf("%d %.10lf %.10lf %.10lf\n", i, s, bestV, Avector[i]);
         }
-        bestAng[2] = bestAng[1];
-        bestA[2] = bestA[1];
+        //printf("-------------\n");
+        //printf("%d %.10lf %.10lf %.10lf\n", amostra, bestS, bestV, bestA);
+          //  getchar();
+        //printf(">> bestS %.10f bestA %.10lf\n", bestS, bestA);
+        //getchar();
+        //printf("A %.20f\n", bestS);
+        //if(bestS >= 0.9) printf("%d depois do A\n", amostra);
 
-        Bfin = Bpctg * bestC[2];
+        bestS = -1;
+        Bfin = Bpctg * bestC;
         Bini = Bfin / (Bint*Bint/2);
         pilhaTemp = 0.0;
-        s = Semblance(lista,bestA[2],0.0,bestC[2],t0,wind,seg,&pilhaTemp,azimuth);
+        s = Semblance(lista,bestA,0.0,bestC,t0,wind,seg,&pilhaTemp,azimuth);
         if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
         if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
-        else if(s > bestS[2]){
-            bestS[2] = s;
-            bestB[2] = 0.0;
-            pilha[2] = pilhaTemp;
+        else if(s > bestS){
+            bestS = s;
+            bestB = 0.0;
+            pilha = pilhaTemp;
         }
-
-        for(i=0, iB=Bfin; i<=Bint/2; i++, iB=iB*0.8){
+        //printf("%.10lf %.10lf %d %.10lf %.10lf %.10lf\n", Bini, Bfin, Bint, Bpctg, bestV, bestC);
+        //getchar();
+        for(i=0, B=Bfin; i<=Bint/2; i++, B=B*0.8){
             //Calcular semblance
-            pilhaTemp = 0.0;
-            s = Semblance(lista,bestA[2],iB,bestC[2],t0,wind,seg,&pilhaTemp,azimuth);
+            pilhaTemp = 0;
+            //printf("%.20lf\n", B);
+            s = Semblance(lista,bestA,B,bestC,t0,wind,seg,&pilhaTemp,azimuth);
+            //if(s == -1){ printf("%d %d %d    ", na, nb, nc); nd++;}
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
-            else if(s > bestS[2]){
-                bestS[2] = s;
-                bestB[2] = iB;
-                pilha[2] = pilhaTemp;
+            else if(s > bestS){
+                bestS = s;
+                bestB = B;
+                pilha = pilhaTemp;
             }
-            pilhaTemp = 0.0;
+            pilhaTemp = 0;
 
-            s = Semblance(lista,bestA[2],-iB,bestC[2],t0,wind,seg,&pilhaTemp,azimuth);
+            //printf("%.20lf\n", -B);
+            s = Semblance(lista,bestA,-B,bestC,t0,wind,seg,&pilhaTemp,azimuth);
+            //if(s == -1){ printf("%d %d %d    ", na, nb, nc); nd++;}
             if(s<0 && s!=-1) {printf("S NEGATIVO\n"); exit(1);}
             if(s>1) {printf("S MAIOR Q UM %.20f\n", s); exit(1);}
-            else if(s > bestS[2]){
-                bestS[2] = s;
-                bestB[2] = -iB;
-                pilha[2] = pilhaTemp;
+            else if(s > bestS){
+                bestS = s;
+                bestB = -B;
+                pilha = pilhaTemp;
             }
         }
 
-        tracoEmpilhado->dados[amostra] = pilha[2];
-        if(bestS[2] == -1) bestS[2] = 0;
-        tracoSemblance->dados[amostra] = bestS[2];
-        tracoA->dados[amostra] = bestAng[2];
-        tracoB->dados[amostra] = bestB[2];
-        tracoV->dados[amostra] = bestV[2];
+        //if(nd > 0)   getchar();
+        tracoEmpilhado->dados[amostra] = pilha;
+        if(bestS == -1) bestS = 0;
+        tracoSemblance->dados[amostra] = bestS;
+        tracoA->dados[amostra] = bestAng;
+        tracoB->dados[amostra] = bestB;
+        tracoV->dados[amostra] = bestV;
+        //tracoC->dados[amostra] = bestC;
+        //s = Semblance(lista,2.0/Vfin,0.0,4/2000.0/2000.0,t0,wind,seg,&pilhaTemp,azimuth);
+        //printf("%.20lf %.20lf\n", s, pilhaTemp);
+        //printf("%.10lf %.10lf %.10lf\n", bestV, bestS, pilha);
+        //printf("%d S=%.10f A=%.20f Ang=%.20lf B=%.20f V=%.20f Pilha=%.10f\n", amostra, bestS, bestA, bestAng, bestB, bestV, pilha);
     }
     printf("\n");
 }
