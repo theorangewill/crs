@@ -2,7 +2,7 @@
 
 #FILE=instances/simple-synthetic.su
 #FILE=instances/simple-windowed.su
-FILE=instances/simple-windowed2.su
+FILE=instances/simple-windowed.su
 #FILE=~/Programas/referencia/scripts/crs.stack.su
 #FILE=instances/simple-windowed-B.out4.su
 #A_INI=-0.0005
@@ -16,15 +16,17 @@ B_PCTG=0.1
 B_INT=50
 #C_INI=0.000000198
 #C_FIN=0.00000177
-V_INI=450.00
+V_INI=2000.00
 V_FIN=6000.00
-V_INT=100
+V_INT=101
 MD=150
 WIND=0.008
 APH=600
 AZIMUTH=0.0
 
 make clean
+
+mkdir results
 
 make
 if [ "$1" == "valgrind" ]; then
