@@ -309,7 +309,7 @@ void CRS(ListaTracos *lista, float *Avector, int Aint, float *Angvector,
 
     //Para cada amostra do primeiro traco
 #ifdef OMP_H
-#pragma omp parallel for firstprivate(lista,amostras,Aint,Vint,Bint,Bpctg,seg,wind,azimuth,Avector,Angvector,Cvector,Vvector) private(bestA,bestB,bestAng,bestC,bestV,bestS,Bini,Bfin,i,pilha,pilhaTemp,t0,amostra,s)  shared(tracoEmpilhado,tracoSemblance,tracoV,tracoB,tracoA)
+#pragma omp parallel for schedule(static) firstprivate(lista,amostras,Aint,Vint,Bint,Bpctg,seg,wind,azimuth,Avector,Angvector,Cvector,Vvector) private(bestA,bestB,bestAng,bestC,bestV,bestS,Bini,Bfin,i,pilha,pilhaTemp,t0,amostra,s)  shared(tracoEmpilhado,tracoSemblance,tracoV,tracoB,tracoA)
 #endif
     for(amostra=0; amostra<amostras; amostra++){
         //Calcula o segundo inicial

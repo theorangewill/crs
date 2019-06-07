@@ -29,8 +29,11 @@ make clean
 mkdir results
 
 make
+CMD="./bin/crs $FILE $A_ANG $A_V0 $A_INT $B_PCTG $B_INT $V_INI $V_FIN $V_INT $MD $WIND $APH $AZIMUTH"
 if [ "$1" == "valgrind" ]; then
-	valgrind ./bin/crs $FILE $A_ANG $A_V0 $A_INT $B_PCTG $B_INT $V_INI $V_FIN $V_INT $MD $WIND $APH $AZIMUTH
-else
-	./bin/crs $FILE $A_ANG $A_V0 $A_INT $B_PCTG $B_INT $V_INI $V_FIN $V_INT $MD $WIND $APH $AZIMUTH
+	valgrind $CMD
+elif [ "$1" == "perf" ]; then
+	perf record $CMD
+else   
+	/usr/bin/time -p $CMD
 fi
